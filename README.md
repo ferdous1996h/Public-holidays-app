@@ -8,4 +8,4 @@ You can select different available country and get holyday data from **openholyd
 - js current date convertion to fetch data
 
 ## Techstack Used🔨
-[!Techstack](https://skillicons.dev/icons?i=html,css,javascript,react,bun,vite)
+![Techstack](https://skillicons.dev/icons?i=html,css,javascript,react,bun,vite)
