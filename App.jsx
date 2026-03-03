@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
-export default function App() {
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query';
+const queryClient = new QueryClient();
+
+function HolyDayApp() {
   const [countryName, setCountryName] = useState([]);
   const [selectOne, setSelectOne] = useState('NL');
-  const [hollyArray, setHollyArray] = useState([]);
 
   useEffect(() => {
     async function allCountry() {
@@ -21,24 +27,23 @@ export default function App() {
     console.log(countryName);
     allCountry();
   }, []);
-
-  useEffect(() => {
-    const date = new Date().getFullYear();
-
-    let ignore = false;
-    async function getHoli() {
+// React Query
+  const {
+    isLoading,
+    error,
+    data = [],
+  } = useQuery({
+    queryKey: ['hollyInfoApi', selectOne],
+    queryFn: async () => {
+      const date = new Date().getFullYear();
       const res = await fetch(
         `https://openholidaysapi.org/PublicHolidays?countryIsoCode=${selectOne}&validFrom=${date}-01-01&validTo=${date}-12-31&languageIsoCode=en`,
       );
-      const data = await res.json();
-      console.log(data);
-      if (!ignore) {
-        setHollyArray(data);
-      }
-    }
-    getHoli();
-    return () => (ignore = true);
-  }, [selectOne]);
+      return await res.json();
+    },
+  });
+
+  const hollyArray = data;
 
   function punchData(e) {
     console.log(e.target.value);
@@ -47,22 +52,22 @@ export default function App() {
   return (
     <main className="box">
       <h1>Public holidays app</h1>
-      <form onChange={punchData}>
-        <select name="holyInfo" id="holyInfoId">
-          {/* <option value="test">Test</option> */}
+      {isLoading && <p>Loading... ...</p>}
+      {error && <p>{error.message}</p>}
+      <form>
+        <select
+          value={selectOne}
+          name="holyInfo"
+          id="holyInfoId"
+          onChange={punchData}
+        >
           {/* <option value="">Select one</option> */}
           {countryName.map((ele, i) => {
-            if (ele.iso === 'NL') {
-             return (<option value={ele.iso} key={i} selected="selected">
+            return (
+              <option value={ele.iso} key={i}>
                 {ele.name}
-              </option>);
-            } else {
-              return (
-                <option value={ele.iso} key={i}>
-                  {ele.name}
-                </option>
-              );
-            }
+              </option>
+            );
           })}
         </select>
       </form>
@@ -80,5 +85,13 @@ export default function App() {
         })}
       </section>
     </main>
+  );
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <HolyDayApp />
+    </QueryClientProvider>
   );
 }
